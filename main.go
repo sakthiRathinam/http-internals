@@ -4,21 +4,31 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
+	"net"
 	"strings"
 )
 
 func main() {
-	messageTxtFileObj, err := os.Open("messages.txt")
+	tcpListener, err := net.Listen("tcp", "127.0.0.1:42069")
 	if err != nil {
-		fmt.Println("Error opening message.txt:", err)
+		fmt.Println("Some error while creating the tcp server", err)
 		return
 	}
-	defer messageTxtFileObj.Close()
-	linesChan := getLinesChannel(messageTxtFileObj)
-	for line := range linesChan {
-		fmt.Print(line)
+	defer tcpListener.Close()
+	for {
+		connection, err := tcpListener.Accept()
+		if err != nil {
+			fmt.Println("Err happened while accpeting the connection", err)
+			continue
+		}
+		fmt.Println("connection has established")
+		linesChan := getLinesChannel(connection)
+		for line := range linesChan {
+			fmt.Print(line)
+		}
+		fmt.Println("Connection has been closed")
 	}
+
 }
 
 func getLinesChannel(f io.ReadCloser) <-chan string {
