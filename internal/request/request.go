@@ -53,12 +53,12 @@ func RequestFromReader(reader io.Reader) (req *Request, err error) {
 				reqObj.state = requestStateDone
 				break
 			}
-			return reqObj, err
+			return nil, err
 		}
 		copy(buf, buf[numBytesParsed:])
 		readToIndex -= numBytesParsed
 	}
-	return req, nil
+	return reqObj, nil
 }
 
 func parseRequestLine(data []byte) (reqLine *RequestLine, n int, err error) {
