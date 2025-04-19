@@ -75,7 +75,6 @@ func parseRequestLine(data []byte) (reqLine *RequestLine, n int, err error) {
 func RequestLineFromStr(str string) (reqLine *RequestLine, err error) {
 	splitReqByLines := strings.Split(str, crlf)
 	requestLineObjs := strings.Split(splitReqByLines[0], " ")
-	fmt.Println(requestLineObjs)
 	if len(requestLineObjs) != 3 {
 		return &RequestLine{}, errors.New("invalid request")
 	}

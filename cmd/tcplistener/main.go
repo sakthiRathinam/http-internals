@@ -1,11 +1,10 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"net"
-	"strings"
+
+	request "github.com/sakthiRathinam/http_internals/internal/request"
 )
 
 func main() {
@@ -21,45 +20,15 @@ func main() {
 			fmt.Println("Err happened while accpeting the connection", err)
 			continue
 		}
-		fmt.Println("connection has established")
-		linesChan := getLinesChannel(connection)
-		for line := range linesChan {
-			fmt.Print(line)
+		parsedReqObj, err := request.RequestFromReader(connection)
+		if err != nil {
+			fmt.Println("error occurend while parsing", err)
+			return
 		}
-		fmt.Println("Connection has been closed")
+		fmt.Println("Request line:")
+		fmt.Println("- Method:", parsedReqObj.RequestLine.Method)
+		fmt.Println("- Target:", parsedReqObj.RequestLine.RequestTarget)
+		fmt.Println("- Version:", parsedReqObj.RequestLine.HttpVersion)
 	}
 
-}
-
-func getLinesChannel(f io.ReadCloser) <-chan string {
-	var currentLine string
-	linesChan := make(chan string, 10)
-	go func() {
-		defer f.Close()
-		defer close(linesChan)
-		for {
-			byteBuffer := make([]byte, 8)
-			n, err := f.Read(byteBuffer)
-			if err != nil {
-				if currentLine != "" {
-					linesChan <- fmt.Sprintf("read: %s\n", currentLine)
-					currentLine = ""
-				}
-				if errors.Is(err, io.EOF) {
-					break
-				}
-				fmt.Println("Error: ", err)
-				break
-			}
-			currentBuffStr := string(byteBuffer[:n])
-
-			parts := strings.Split(currentBuffStr, "\n")
-			for i := 0; i < len(parts)-1; i++ {
-				linesChan <- fmt.Sprintf("read: %s%s\n", currentLine, parts[i])
-				currentLine = ""
-			}
-			currentLine += parts[len(parts)-1]
-		}
-	}()
-	return linesChan
 }

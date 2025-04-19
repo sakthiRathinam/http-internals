@@ -1,6 +1,7 @@
 package request
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -14,6 +15,37 @@ type chunkReader struct {
 	numBytePerRead int
 }
 
+func testBufferAppend(readObj *chunkReader) {
+	buf := make([]byte, 100)
+	readToIndex := 3
+	_, err := readObj.Read(buf[readToIndex:])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	readToIndex = 50
+	fmt.Println(buf)
+	_, err = readObj.Read(buf[readToIndex:])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(buf)
+	readToIndex = 80
+	_, err = readObj.Read(buf[readToIndex:])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	readToIndex = 0
+	fmt.Println(buf)
+	_, err = readObj.Read(buf[readToIndex:])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(buf)
+}
 func (cr *chunkReader) Read(p []byte) (n int, err error) {
 	if cr.pos >= len(cr.data) {
 		return 0, io.EOF
@@ -31,6 +63,15 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 		n = cr.numBytePerRead
 	}
 	return n, nil
+}
+
+func TestBufferBehaviour(t *testing.T) {
+	reader := &chunkReader{
+		data:           "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
+		pos:            0,
+		numBytePerRead: 3,
+	}
+	testBufferAppend(reader)
 }
 func TestRequestLineParse(t *testing.T) {
 	// Test: Good GET Request line
