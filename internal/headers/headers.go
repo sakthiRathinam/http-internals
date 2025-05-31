@@ -13,12 +13,12 @@ const colon = ":"
 
 func validateHeader(headerVals []string) error {
 	if len(headerVals) <= 1 {
-		return fmt.Errorf("Not a valid header")
+		return fmt.Errorf("not a valid header")
 	}
 	headerKey := headerVals[0]
-	validKey := strings.Contains(headerKey, " ")
-	if validKey {
-		return fmt.Errorf("Not a valid header")
+	spaceInHeaderKey := strings.Contains(headerKey, " ")
+	if spaceInHeaderKey {
+		return fmt.Errorf("not a valid header")
 	}
 	return nil
 }
@@ -29,7 +29,7 @@ func (h Headers) Parse(data []byte) (n int, done bool, err error) {
 	}
 
 	fieldLine := string(splitFieldLines[0])
-	if len(fieldLine) == 0 {
+	if len(fieldLine) <= 2 {
 		return 0, true, nil
 	}
 	parsedFieldLineObj := strings.Split(fieldLine, colon)
@@ -38,5 +38,5 @@ func (h Headers) Parse(data []byte) (n int, done bool, err error) {
 		return n, false, err
 	}
 	h[parsedFieldLineObj[0]] = strings.ReplaceAll(strings.Join(parsedFieldLineObj[1:], ":"), " ", "")
-	return n, done, err
+	return len(fieldLine) + 2, done, err
 }
